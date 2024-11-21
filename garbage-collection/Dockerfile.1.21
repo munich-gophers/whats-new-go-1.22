@@ -1,0 +1,26 @@
+# Go 1.21 Dockerfile
+FROM golang:1.21 AS builder
+
+# Set the working directory inside the container
+WORKDIR /app
+
+# Copy the Go demo code into the container
+COPY . .
+
+RUN if [ -f "go.mod" ]; then \
+        cp go.mod go.sum ./; \
+    else \
+        go mod init golang-demo; \
+    fi
+
+# Build the Go application
+RUN go build -o main .
+
+# Use a lightweight image to run the Go binary
+FROM gcr.io/distroless/base-debian10
+
+# Copy the compiled binary from the builder
+COPY --from=builder /app/main /main
+
+# Run the binary
+ENTRYPOINT ["/main"]
